@@ -109,8 +109,8 @@ sub do_walking{
    }
    #moving right towards wall?
    elsif ($self->{xv} > 0  and  $platform->right_edge eq 'wall'){
-      if ($self->{x} + $self->{xv} > $platform->right_x){
-         $self->{x} = $platform->right_x;
+      if ($self->{x} + $self->{xv} + $self->w > $platform->right_x+1){
+         $self->{x} = $platform->right_x +1 - $self->w;
          $self->{xv} = 0;
          $self->{bound_r} = 1;
          return;
@@ -119,15 +119,20 @@ sub do_walking{
    #moving left towards cliff?
    elsif ($self->{xv} < 0  and  $platform->left_edge eq 'cliff'){
       #allow standing on cliff edge
-      if ($self->{x} + $self->{xv} < $platform->left_x - 1){
-         $self->{x} = $platform->left_x;
-         $self->{xv} = 0;
-         $self->{bound_l} = 1;
+      if ($self->{x} + $self->{xv} < $platform->left_x - $self->w){
+         $self->{x} += $self->xv;
+         $self->set_freefall;
          return;
       }
    }
    #moving right towards cliff?
    elsif ($self->{xv} > 0  and  $platform->right_edge eq 'cliff'){
+      #allow standing on cliff edge
+      if ($self->{x} + $self->{xv} > $platform->right_x){
+         $self->{x} += $self->xv;
+         $self->set_freefall;
+         return;
+      }
    }
    #eliminate boundedness if still moving horizontally
    if ($self->xv){
@@ -151,28 +156,46 @@ sub do_freefall{
    my $collision = dynamic_collision($self->level->{cgrid}, $crect);
    if ($collision and $collision->axis){
       if ($collision->axis eq 'y'){ #vertical collision
-        
+         $self->{x} += $self->xv * $collision->time*.999;
+         $self->{y} += $self->yv * $collision->time*.999; 
          if ($self->yv > 0){ #vertical collision with floor..
-            $self->{x} += $self->xv * $collision->time;
-            $self->{y} += $self->yv * $collision->time;
             #now make y an int
             $self->{y} = floor ($self->y+.001);
+            $self->yv(0);
             $self->set_status('walking');
-         }
-         
-         else { #vertical collision with ceiling..
-            $self->{x} += $self->xv * $collision->time;
-            $self->{y} += $self->yv * $collision->time;
+            return;
+         } 
+         else { #vertical collision with ceiling.. 
             $self->{yv} *= -.25;
+            return;
          }
       }
+      else { #horizontal collision
+         $self->{x} += $self->xv * $collision->time*.999;
+         $self->{y} += $self->yv * $collision->time*.999;
+         if ($self->xv > 0){
+            $self->bound_r(1);
+         }
+         elsif ($self->xv < 0){
+            $self->bound_l(1);
+         }
+         else{
+            die 'what manner of collision is this?'
+         }
+         return;
+      }
    }
-   else {
-      $self->{y} += $self->yv;
-      $self->{x} += $self->xv;
+   #eliminate boundedness if still moving horizontally
+   if ($self->xv){
+      $self->bound_l(0);
+      $self->bound_r(0);
    }
+   
+   $self->{y} += $self->yv;
+   $self->{x} += $self->xv;
 }
 
+#return 0 if instersects with solid tiles; else 1
 sub in_space{
    my $self = shift;
    my $left_bound = (int ($self->x));
@@ -309,6 +332,7 @@ sub establish_platform{
       left_edge => $l_edge,
       right_edge => $r_edge,
    );
+   #die "$py: $l $l_edge , $r $r_edge";
    $self->platform($platform);
 }
 

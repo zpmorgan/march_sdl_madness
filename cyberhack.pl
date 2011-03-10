@@ -73,7 +73,7 @@ my $cryptopod = new Entity(
    x => 3,
    y => 3,
    sprite => $sprite,
-   w => 1,
+   w => .5,
    h => 1,
 );
 $level->add_entity($cryptopod);

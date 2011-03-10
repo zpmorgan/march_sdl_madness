@@ -32,26 +32,28 @@ my $tiletypes = {
 };
 
 
-my $levelsize = 20;
-my @leveldata = map{[map {'air'} 1..20]} 1..20;
-for(0..19){
-   $leveldata[8][$_] = 'green';
-   $leveldata[rand(19)][rand(20)] = 'red';
-}
+#~ my $levelsize = 20;
+#~ my @leveldata = map{[map {'air'} 1..20]} 1..20;
+#~ for(0..19){
+   #~ $leveldata[8][$_] = 'green';
+   #~ $leveldata[rand(19)][rand(20)] = 'red';
+#~ }
 my $level = Level->new(
-   size => 20,
+   size => 120,
    tilesize => 32,
    tiletypes => $tiletypes, 
-   tiles => \@leveldata, 
+   #~ tiles => \@leveldata, 
    default_tile => 'air',
+   default_space => 'air',
+   default_solid => 'green',
 );
 
-$level->generate_terrain;
+#~ $level->generate_terrain;
 
 $level->init_collision_grid;
 
 my $viewport = $level->basic_viewport (app => $app, level => $level, 
-      w=>300, h=>400, surf_x => 32,  surf_y=> 32);
+      w=>500, h=>400, surf_x => 32,  surf_y=> 32);
 
 my $sprite = SDLx::Sprite::Animated->new(
    name            => 'cryptopod',

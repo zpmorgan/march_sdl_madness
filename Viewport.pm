@@ -4,6 +4,8 @@ use strict;
 
 use SDL::Rect;
 
+use POSIX qw/floor ceil/; 
+
 #draw Level tiles & entities in a clipped, offset region.
 
 
@@ -46,9 +48,9 @@ sub draw{
    
    #figure out 2d range of tiles within viewport bounds
    my $tile_start_x = $self->{level_x};
-   my $tile_end_x = 1 + $self->{level_x} + $self->{w};
+   my $tile_end_x = 1 + ceil ($self->{level_x} + $self->{w}/32);
    my $tile_start_y = $self->{level_y};
-   my $tile_end_y = 1 + $self->{level_y} + $self->{w};
+   my $tile_end_y = 1 + ceil ($self->{level_y} + $self->{w}/32);
    $tile_start_x = 0 if $tile_start_x < 0; 
    $tile_end_x = $level->{w}-1 if $tile_end_x  >= $level->{w};
    $tile_start_y = 0 if $tile_start_y < 0; 
@@ -82,6 +84,7 @@ sub draw{
      # die $ent->sprite->y;
       $ent->sprite->draw ($self->{app}->surface);
    }
+   $self->draw_border;
 }
 
 sub tilesize{
@@ -95,6 +98,22 @@ sub app_rect{
 sub track{
    my ($self,$thing) = @_;
    $self->{track} = $thing;
+}
+
+
+use SDL::GFX::Primitives;
+
+sub draw_border{
+   my $self = shift;
+   my ($sx,$sy,$w,$h) = @{$self}{qw/ surf_x  surf_y  w h /};
+   SDL::GFX::Primitives::hline_RGBA(  
+      $self->{app}, $sx, $sx+$w, $sy,    255,255,255,255 );
+   SDL::GFX::Primitives::hline_RGBA(  
+      $self->{app}, $sx, $sx+$w, $sy+$h, 255,255,255,255 );
+   SDL::GFX::Primitives::vline_RGBA(  
+      $self->{app}, $sx,    $sy, $sy+$h, 255,255,255,255 );
+   SDL::GFX::Primitives::vline_RGBA(  
+      $self->{app}, $sx+$w, $sy, $sy+$h, 255,255,255,255 );
 }
 
 1

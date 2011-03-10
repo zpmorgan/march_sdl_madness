@@ -20,15 +20,17 @@ sub new{
       # default_tile => try 'air' or whatever. for undefs in the level data
       # tiles => actual level data.[['grass','air','rock'], [second row] , etc.]
       # w => width, h => height.
+      # default_solid and default_space are for level genration.
       @_,
    };
    bless $self,$class;
    if ($self->{size}){
       $self->{w} = $self->{h} = $self->{size}
    }
-   for (qw/ size tiles tiletypes w h default_tile tilesize /){
+   for (qw/ size tiletypes w h default_tile tilesize /){
       die "level needs $_" unless $self->{$_}
    }
+   $self->generate_terrain unless $self->{tiles};
    return $self;
 }
 
@@ -160,10 +162,10 @@ sub generate_terrain{
    #return $terrain;
    for my $row (1..$self->{h}-2){
       for my $col (1..$self->{w}-2){
-         if ($terrain[$row][$col] == 1){
-            $terrain[$row][$col] = 'green';
+         if ($terrain[$row][$col]){
+            $terrain[$row][$col] = $self->{default_solid};
          }
-         else { $terrain[$row][$col] = 'air' }
+         else { $terrain[$row][$col] = $self->{default_space} }
       }
    }
    $self->{tiles} = \@terrain;

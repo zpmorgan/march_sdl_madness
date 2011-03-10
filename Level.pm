@@ -89,7 +89,7 @@ sub add_entity{
       $entity->{$_} = $params{$_} if $params{$_};
    }
    
-   #falling? freefall?
+   #walking? freefall?
    $entity->determine_status;
    
    push @{$self->{entities}}, $entity;

@@ -118,7 +118,7 @@ $app->add_show_handler(
       if ($pressed{up} and $cryptopod->status eq 'walking'){
          $cryptopod->yv(-.3);
          $cryptopod->{y} -= .001;
-         $cryptopod->set_status('freefall');
+         $cryptopod->set_freefall;
       }
       $cryptopod->do;
       $app->draw_rect( [ 0, 0, $app->w, $app->h ], 0x0 );

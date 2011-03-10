@@ -36,6 +36,10 @@ has gravity => (
    default => .01,
 );
 
+has platform => (
+   is => 'rw',
+);
+
 # walking, freefall, etc
 has 'status' => (
    is => 'rw',
@@ -93,7 +97,7 @@ sub do_walking{
       $self->{xv} = 0;
    }
    
-   my $platform = $self->{platform};
+   my $platform = $self->platform;
    #moving left towards wall?
    if ($self->{xv} < 0  and  $platform->left_edge eq 'wall'){
       if ($self->{x} + $self->{xv} < $platform->left_x){
@@ -125,6 +129,12 @@ sub do_walking{
    #moving right towards cliff?
    elsif ($self->{xv} > 0  and  $platform->right_edge eq 'cliff'){
    }
+   #eliminate boundedness if still moving horizontally
+   if ($self->xv){
+      $self->bound_l(0);
+      $self->bound_r(0);
+   }
+   
    $self->{x} += $self->xv
 } 
 
@@ -223,6 +233,11 @@ sub set_walking{
    $self->status('walking');
    
 }
+sub set_freefall{
+   my $self = shift;
+   $self->platform(undef);
+   $self->status('freefall');
+}
 
 sub set_status{
    my ($self, $status) = @_;
@@ -287,13 +302,14 @@ sub establish_platform{
       $r_edge = "cliff" }
    
    
-   $self->{platform} = Platform->new(
+   my $platform = Platform->new(
       y => $py,
       left_x => $l,
       right_x => $r,
       left_edge => $l_edge,
       right_edge => $r_edge,
    );
+   $self->platform($platform);
 }
 
 sub collision_rect{

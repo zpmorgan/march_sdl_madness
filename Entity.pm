@@ -205,14 +205,9 @@ sub determine_status{
    
    #perturb until non-solid
    $self->perturb_if_necessary;
-   #while ($self->level->solid($self->{x},$self->{y})){
-      #$self->{x}++ if rand()<.2  and $self->x < $self->level->{w} - 1;#don't escape level bounds.
-      #$self->{y}++ if rand()<.2  and $self->y < $self->level->{h} - 1;
-      #$self->{x}-- if rand()<.2  and $self->x > 0;
-      #$self->{y}-- if rand()<.2  and $self->y > 0;
-   #}
+   
    # solid ground at feet?
-   if ($self->level->solid ($self->x, $self->y+1)){
+   if ($self->level->solid ($self->x, $self->y+$self->h + .001)){
       $self->set_walking;
       $self->establish_platform;
    }
@@ -314,5 +309,11 @@ sub collision_rect{
    
    return $crect;
 }
+
+sub center{
+   my $self = shift;
+   return ($self->x + $self->w/2, $self->y + $self->h/2)
+}
+
 1
 

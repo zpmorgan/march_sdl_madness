@@ -43,8 +43,11 @@ my $level = Level->new(
    tilesize => 32,
    tiletypes => $tiletypes, 
    tiles => \@leveldata, 
-   default_tile => 'air' 
+   default_tile => 'air',
 );
+
+$level->generate_terrain;
+
 $level->init_collision_grid;
 
 my $viewport = $level->basic_viewport (app => $app, level => $level, 
@@ -72,6 +75,7 @@ my $cryptopod = new Entity(
    h => 1,
 );
 $level->add_entity($cryptopod);
+$viewport->track($cryptopod);
  
 
 
@@ -117,9 +121,6 @@ $app->add_show_handler(
       $cryptopod->do;
       $app->draw_rect( [ 0, 0, $app->w, $app->h ], 0x0 );
       $viewport->draw();
-      #$sprite->x( 200  );
-      #$sprite->y( 100 );
-      #$sprite->draw($app->surface);
       
    }
 );

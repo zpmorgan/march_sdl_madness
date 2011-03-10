@@ -26,22 +26,33 @@ sub new{
 
 sub draw{
    my $self = shift;
-   my %params = @_;
+   my $level = $self->{level};
+   #my %params = @_;
+   
+   my $trackee = $self->{track};
+   # scroll if necessary
+   if ($trackee){
+      my ($cx,$cy) = $trackee->center;
+      $self->{level_x} = $cx - $self->{w}/(2*32);
+      $self->{level_y} = $cy - $self->{h}/(2*32);
+   }
    
    my $vp_app_rect = $self->app_rect();
    
    #make sure we have these parameters
    for (qw/ w h level_x level_y  surf_x  surf_y /){
-      next if defined $params{$_};
       die "viewport draw needs $_" unless defined $self->{$_};
-      $params{$_} = $self->{$_};
    }
    
    #figure out 2d range of tiles within viewport bounds
-   my $tile_start_x = $params{level_x} / $self->tilesize;
-   my $tile_end_x = 1 + ($params{level_x} + $params{w}) / $self->tilesize;
-   my $tile_start_y = $params{level_y} / $self->tilesize;
-   my $tile_end_y = 1 + ($params{level_y} + $params{h}) / $self->tilesize;
+   my $tile_start_x = $self->{level_x};
+   my $tile_end_x = 1 + $self->{level_x} + $self->{w};
+   my $tile_start_y = $self->{level_y};
+   my $tile_end_y = 1 + $self->{level_y} + $self->{w};
+   $tile_start_x = 0 if $tile_start_x < 0; 
+   $tile_end_x = $level->{w}-1 if $tile_end_x  >= $level->{w};
+   $tile_start_y = 0 if $tile_start_y < 0; 
+   $tile_end_y = $level->{h}-1 if $tile_end_y  >= $level->{h};
    
    for my $ty ($tile_start_y .. $tile_end_y){
       for my $tx ($tile_start_x .. $tile_end_x){
@@ -49,7 +60,7 @@ sub draw{
          #die @{$self->{tiles}} unless defined $tile;
          my $tileclass = $self->{level}{tiletypes}{$tile} || die "tile $tile what?";
          
-         my $tile_rect = SDL::Rect->new($tx*32,$ty*32, 32, 32 );
+         my $tile_rect = SDL::Rect->new(($tx-$self->{level_x})*32,($ty-$self->{level_y})*32, 32, 32 );
          my $clipped_tile_rect = $vp_app_rect->clip( $tile_rect );
          if ($tileclass->{file}){
             
@@ -61,7 +72,12 @@ sub draw{
       }
    }
    for my $ent (@{$self->{level}{entities}}) {
-      $ent->sprite->rect ( SDLx::Rect->new($ent->x*32, $ent->y*32, 16, 32 ) );
+      # set sprite rect relative to viewport
+      $ent->sprite->rect (
+         SDLx::Rect->new(
+            ($ent->x-$self->{level_x})*32, 
+            ($ent->y-$self->{level_y})*32, 
+            16, 32 ) );
       $ent->sprite->rect->clip_ip ($vp_app_rect);
      # die $ent->sprite->y;
       $ent->sprite->draw ($self->{app}->surface);
@@ -74,6 +90,11 @@ sub tilesize{
 sub app_rect{
    my $self = shift;
    return new SDLx::Rect($self->{surf_x}, $self->{surf_y},$self->{w}, $self->{h});
+}
+
+sub track{
+   my ($self,$thing) = @_;
+   $self->{track} = $thing;
 }
 
 1

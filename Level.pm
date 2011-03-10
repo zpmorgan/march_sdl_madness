@@ -97,6 +97,7 @@ sub solid{
    my ($self, $x, $y) = @_;
    confess unless defined $x;
    my $tile = $self->{tiles}[$y][$x];
+   return 1 unless defined $tile;
    #solid by default
    return 1 unless defined $self->{tiletypes}{$tile}{solid};
    return $self->{tiletypes}{$tile}{solid};
@@ -108,6 +109,64 @@ sub dump{
       say join '', map {$self->solid($_,$ty)} (0..$self->{w}-1);
       
    }
+}
+
+sub generate_terrain{
+   my $self = shift;
+   
+   my $iterations = 3;
+   my $amountWalls = .45;
+   #fill with 1s and 0s
+   my @terrain = map   {[map {rand() < $amountWalls || 0} (1..$self->{w})]}   (1..$self->{h});
+   
+   my @next;
+   
+   #make borders solid. This ought to be extended to create paths & chunk links.
+   my $do_borders = sub{
+      for (0..$self->{w}-1){
+         $next[0][$_] = 1;
+         $next[$self->{h}-1][$_] = 1;
+      }
+      for (0..$self->{h}-1){
+         $next[$_][0] = 1;
+         $next[$_][$self->{w}-1] = 1;
+      }
+   };
+   
+   for (1..$iterations){
+      @next = ();
+      for my $row (1..$self->{h}-2){
+         for my $col (1..$self->{w}-2){
+            my $ct = 0;
+            #count number of 1's in 3x3 proximity + itself
+            for my $r ($row-1..$row+1) { 
+               for my $c ($col-1..$col+1) {
+                  $ct += 1 if $terrain[$r][$c] } };
+            $next[$row][$col] = $ct>4||0;
+         }
+      }
+      $do_borders->();
+      #~ for (@$solid){
+         #~ my ($col,$row) = @$_;
+         #~ $next[$row][$col] = 1;
+      #~ }
+      #~ for (@$space){
+         #~ my ($col,$row) = @$_;
+         #~ $next[$row][$col] = 0;
+      #~ }
+      @terrain = @next;
+   }
+   #$self->decorate($terrain);
+   #return $terrain;
+   for my $row (1..$self->{h}-2){
+      for my $col (1..$self->{w}-2){
+         if ($terrain[$row][$col] == 1){
+            $terrain[$row][$col] = 'green';
+         }
+         else { $terrain[$row][$col] = 'air' }
+      }
+   }
+   $self->{tiles} = \@terrain;
 }
 
 1

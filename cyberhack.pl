@@ -10,6 +10,8 @@ use SDLx::Sprite::Animated;
 use SDL::Event;
 use SDL::Events;
 
+use SDLx::Sound;
+
 use Viewport;
 use Level; 
 use Entity;
@@ -99,21 +101,25 @@ my $cryptopod = new Entity(
 $level->add_entity($cryptopod);
 $viewport->track($cryptopod);
  
-
-
+#~ use SDL::Mixer::Music;
+#~ my $music = SDL::Mixer::Music::load_MUS( '0.mod' );
+#~ $music->play;
+my $snd = SDLx::Sound->new();
+# load and play a sound
+my $play = $snd->play('0.mod');
 
 $app->add_event_handler(
    sub {
       my ($event,$app) = @_;
-      $_[1]->stop if $_[0]->type == SDL_QUIT || $quit;
+      exit if $event->type == SDL_QUIT || $quit;
 
-      my $key = $_[0]->key_sym;
+      my $key = $event->key_sym;
       my $name = SDL::Events::get_key_name($key) if $key;
 
-      if ( $_[0]->type == SDL_KEYDOWN ) {
+      if ( $event->type == SDL_KEYDOWN ) {
          $pressed{$name} = 1;
       }
-      elsif ( $_[0]->type == SDL_KEYUP ) {
+      elsif ( $event->type == SDL_KEYUP ) {
          $pressed{$name} = 0;
       }
    }

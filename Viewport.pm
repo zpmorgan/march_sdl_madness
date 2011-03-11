@@ -40,7 +40,7 @@ sub draw{
    }
    
    my $vp_app_rect = $self->app_rect();
-   
+   #die $vp_app_rect->x;
    #make sure we have these parameters
    for (qw/ w h level_x level_y  surf_x  surf_y /){
       die "viewport draw needs $_" unless defined $self->{$_};
@@ -48,9 +48,9 @@ sub draw{
    
    #figure out 2d range of tiles within viewport bounds
    my $tile_start_x = $self->{level_x};
-   my $tile_end_x = 1 + ceil ($self->{level_x} + $self->{w}/32);
+   my $tile_end_x = ceil ($self->{level_x} + $self->{w}/32) - 1;
    my $tile_start_y = $self->{level_y};
-   my $tile_end_y = 1 + ceil ($self->{level_y} + $self->{w}/32);
+   my $tile_end_y = ceil ($self->{level_y} + $self->{h}/32) - 1;
    $tile_start_x = 0 if $tile_start_x < 0; 
    $tile_end_x = $level->{w}-1 if $tile_end_x  >= $level->{w};
    $tile_start_y = 0 if $tile_start_y < 0; 
@@ -62,10 +62,30 @@ sub draw{
          #die @{$self->{tiles}} unless defined $tile;
          my $tileclass = $self->{level}{tiletypes}{$tile} || die "tile $tile what?";
          
-         my $tile_rect = SDL::Rect->new(($tx-$self->{level_x})*32,($ty-$self->{level_y})*32, 32, 32 );
-         my $clipped_tile_rect = $vp_app_rect->clip( $tile_rect );
-         if ($tileclass->{file}){
+         #so a tile_rect with x=0 would be precicely where the viewport starts on the left.
+         my $tile_rect = SDLx::Rect->new(($tx-$self->{level_x})*32 + $self->{surf_x},($ty-$self->{level_y})*32 + $self->{surf_y}, 32, 32 );
+         my $clipped_tile_rect = $tile_rect->clip($vp_app_rect);
+         if ($tileclass->{sprite}){
+            my $clip = SDL::Rect->new(0,0,32,32);
+            #does tile extend left past viewport bound?
+            my $x_snipped = $self->{surf_x} - $tile_rect->x;
+            next if $x_snipped >= 32;
+            #warn  $x_snipped;
+            if ($x_snipped > 0){
+               $clip->x($clip->x + $x_snipped);
+               $clip->w($clip->w - $x_snipped);
+            }
+            #how about on top?
+            my $y_snipped = $self->{surf_y} - $tile_rect->y;
+            next if $y_snipped >= 32;
+            if ($y_snipped > 0){
+               $clip->y($clip->y + $y_snipped);
+               $clip->h($clip->h - $y_snipped);
+            }
             
+            $tileclass->{sprite}->clip($clip);
+            $tileclass->{sprite}->rect($clipped_tile_rect);
+            $tileclass->{sprite}->draw($self->{app});
          }
          elsif ($tileclass->{color}){
             $self->{app}->draw_rect( $clipped_tile_rect , $tileclass->{color} );
@@ -77,8 +97,8 @@ sub draw{
       # set sprite rect relative to viewport
       $ent->sprite->rect (
          SDLx::Rect->new(
-            ($ent->x-$self->{level_x})*32, 
-            ($ent->y-$self->{level_y})*32, 
+            ($ent->x-$self->{level_x})*32 + $self->{surf_x}, 
+            ($ent->y-$self->{level_y})*32 + $self->{surf_y}, 
             16, 32 ) );
       $ent->sprite->rect->clip_ip ($vp_app_rect);
      # die $ent->sprite->y;

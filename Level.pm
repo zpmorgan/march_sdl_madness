@@ -49,22 +49,7 @@ sub init_collision_grid{
 
 # use Viewport for maneuverability & screen positioning
 sub draw{
-   die;
-   my ($self,$surf) = @_;
-   for my $ty (0..$self->{h}-1){
-      for my $tx (0..$self->{w}-1){
-         my $tile = $self->{tiles}[$ty][$tx] // $self->{default_tile};
-         die unless defined $tile;
-         my $tileclass = $self->{tiletypes}{$tile} || die "tile $tile what?";
-         if ($tileclass->{file}){
-            fail_somehow();
-         }
-         elsif ($tileclass->{color}){
-            $surf->draw_rect( [ $tx*32,$ty*32, 32, 32 ], $tileclass->{color} );
-         }
-         # else empty space. parallax background would be neat.
-      }
-   }
+   die 'levels don\'t draw. only viewports draw.';
 }
 
 sub basic_viewport{
@@ -164,8 +149,11 @@ sub generate_terrain{
       for my $col (1..$self->{w}-2){
          if ($terrain[$row][$col]){
             $terrain[$row][$col] = $self->{default_solid};
+            #$terrain[$row][$col] .= 's' if rand() > .03;
          }
-         else { $terrain[$row][$col] = $self->{default_space} }
+         else { 
+            $terrain[$row][$col] = $self->{default_space}; 
+         }
       }
    }
    $self->{tiles} = \@terrain;

@@ -1,6 +1,9 @@
 #!/usr/bin/perl -w
 use strict;
 
+#found some tiles at http://www.ironstarmedia.co.uk/2010/10/free-game-assets-13-prototype-mine-tileset/
+# and some musics at http://www.ironstarmedia.co.uk/resources/free-game-assets/browse/music
+
 use SDL;
 use SDLx::App; 
 use SDLx::Sprite::Animated;
@@ -23,12 +26,29 @@ my $app = SDLx::App->new(
    depth  => 32
 ); 
 
-
+my $tiles_surf = SDLx::Surface->load('cave-tiles32.png');
+my $rock_sprite = SDLx::Sprite->new(
+   image => 'cave-tiles32.png',
+   width => 32,
+   height => 32,
+);
+my $air_sprite = SDLx::Sprite->new(
+   image => 'cave-tiles32.png',
+   width => 32,
+   height => 32,
+);
+my $rock_clip = SDL::Rect->new( 32,32,32,32);
+my $air_clip = SDL::Rect->new(160,0,32,32);
+$tiles_surf->blit( $rock_sprite->surface, $rock_clip, $rock_sprite->clip );
+$tiles_surf->blit( $air_sprite->surface, $air_clip, $air_sprite->clip );
 
 my $tiletypes = {
    'green' => {color => 0x00ff00ff},
+   'rocks'  => {color => 0x00ff00ff},
+   'rock'  => {sprite => $rock_sprite},
    'red' =>  {color => 0xff0000ff},
-   'air' =>  {solid => 0},
+   #'air' =>  {solid => 0},
+   'air' =>  {sprite => $air_sprite, solid=>0},
 };
 
 
@@ -45,7 +65,7 @@ my $level = Level->new(
    #~ tiles => \@leveldata, 
    default_tile => 'air',
    default_space => 'air',
-   default_solid => 'green',
+   default_solid => 'rock',
 );
 
 #~ $level->generate_terrain;

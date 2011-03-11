@@ -101,12 +101,13 @@ my $cryptopod = new Entity(
 $level->add_entity($cryptopod);
 $viewport->track($cryptopod);
  
-#~ use SDL::Mixer::Music;
-#~ my $music = SDL::Mixer::Music::load_MUS( '0.mod' );
-#~ $music->play;
+
 my $snd = SDLx::Sound->new();
 # load and play a sound
-my $play = $snd->play('0.mod');
+my $play = $snd->play('hallucinations.ogg');
+#Hallucinations track from : 
+# http://modarchive.org/index.php?request=view_by_moduleid&query=58827
+# Artist unknown :\
 
 $app->add_event_handler(
    sub {

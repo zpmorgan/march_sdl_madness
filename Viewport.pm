@@ -26,6 +26,8 @@ sub new{
    return $self;
 }
 
+#my $rect32 = SDL::Rect->new(32,32,32,32);
+
 sub draw{
    my $self = shift;
    my $level = $self->{level};
@@ -65,7 +67,7 @@ sub draw{
          #so a tile_rect with x=0 would be precicely where the viewport starts on the left.
          my $tile_rect = SDLx::Rect->new(($tx-$self->{level_x})*32 + $self->{surf_x},($ty-$self->{level_y})*32 + $self->{surf_y}, 32, 32 );
          my $clipped_tile_rect = $tile_rect->clip($vp_app_rect);
-         if ($tileclass->{sprite}){
+         if ($tileclass->{surface}){
             my $clip = SDL::Rect->new(0,0,32,32);
             #does tile extend left past viewport bound?
             my $x_snipped = $self->{surf_x} - $tile_rect->x;
@@ -82,10 +84,8 @@ sub draw{
                $clip->y($clip->y + $y_snipped);
                $clip->h($clip->h - $y_snipped);
             }
-            
-            $tileclass->{sprite}->clip($clip);
-            $tileclass->{sprite}->rect($clipped_tile_rect);
-            $tileclass->{sprite}->draw($self->{app});
+            #warn $clip->x . '\;' . $clip->w . '|;;;;;|' . $clipped_tile_rect->x . '\;' . $clipped_tile_rect->w;
+            $tileclass->{surface}->blit($self->{app}, $clip, $clipped_tile_rect);
          }
          elsif ($tileclass->{color}){
             $self->{app}->draw_rect( $clipped_tile_rect , $tileclass->{color} );

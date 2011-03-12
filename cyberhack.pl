@@ -29,37 +29,23 @@ my $app = SDLx::App->new(
 ); 
 
 my $tiles_surf = SDLx::Surface->load('cave-tiles32.png');
-my $rock_sprite = SDLx::Sprite->new(
-   image => 'cave-tiles32.png',
-   width => 32,
-   height => 32,
-);
-my $air_sprite = SDLx::Sprite->new(
-   image => 'cave-tiles32.png',
-   width => 32,
-   height => 32,
-);
+my $rock_surf = SDLx::Surface->new( width => 32, height => 32,  color=>0x000000FF);
+my $air_surf = SDLx::Surface->new( width => 32, height => 32,  color=>0x000000FF );
 my $rock_clip = SDL::Rect->new( 32,32,32,32);
 my $air_clip = SDL::Rect->new(160,0,32,32);
-$tiles_surf->blit( $rock_sprite->surface, $rock_clip, $rock_sprite->clip );
-$tiles_surf->blit( $air_sprite->surface, $air_clip, $air_sprite->clip );
+my $rect32 = SDL::Rect->new(0,0,32,32);
+$tiles_surf->blit( $rock_surf, $rock_clip, $rect32 );
+$tiles_surf->blit( $air_surf, $air_clip, $rect32 );
 
 my $tiletypes = {
-   'green' => {color => 0x00ff00ff},
-   'rocks'  => {color => 0x00ff00ff},
-   'rock'  => {sprite => $rock_sprite},
-   'red' =>  {color => 0xff0000ff},
-   #'air' =>  {solid => 0},
-   'air' =>  {sprite => $air_sprite, solid=>0},
+   green => {color => 0x00ff00ff},
+   #rocks  => {color => 0x00ff00ff},
+   rock  => {surface => $rock_surf},
+   red =>  {color => 0xff0000ff},
+   air =>  {surface => $air_surf, solid=>0},
 };
 
 
-#~ my $levelsize = 20;
-#~ my @leveldata = map{[map {'air'} 1..20]} 1..20;
-#~ for(0..19){
-   #~ $leveldata[8][$_] = 'green';
-   #~ $leveldata[rand(19)][rand(20)] = 'red';
-#~ }
 my $level = Level->new(
    size => 120,
    tilesize => 32,
@@ -150,7 +136,7 @@ $app->add_show_handler(
       $cryptopod->do;
       $app->draw_rect( [ 0, 0, $app->w, $app->h ], 0x0 );
       $viewport->draw();
-      
+      $rock_surf->blit ($app, $rect32, $rect32);
    }
 );
 $app->add_show_handler( sub { $app->update(); } );

@@ -18,10 +18,6 @@ has 'right_x' => (
    is => 'ro',
    isa => 'Int',
 );
-has 'left_x' => (
-   is => 'ro',
-   isa => 'Int',
-);
 has 'right_edge' => (
    is => 'ro',
    isa => 'Str',

@@ -2,6 +2,7 @@ package Entity;
 use Moose;
 
 use Platform;
+use Wall;
 use Collision::2D ':all';
 use POSIX 'floor';
 
@@ -128,7 +129,7 @@ sub do_walking{
    #moving right towards cliff?
    elsif ($self->{xv} > 0  and  $platform->right_edge eq 'cliff'){
       #allow standing on cliff edge
-      if ($self->{x} + $self->{xv} > $platform->right_x){
+      if ($self->{x} + $self->{xv} > $platform->right_x + 1){
          $self->{x} += $self->xv;
          $self->set_freefall;
          return;

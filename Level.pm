@@ -4,7 +4,6 @@ use strict;
 use feature 'say';
 
 use Viewport;
-use Platform;
 use Collision::2D ':all';
 #use Collision::2D::Entity::Grid; 
 #use Collision::2D::Entity::Rect;

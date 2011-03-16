@@ -49,9 +49,9 @@ sub draw{
    }
    
    #figure out 2d range of tiles within viewport bounds
-   my $tile_start_x = $self->{level_x};
+   my $tile_start_x = floor $self->{level_x};
    my $tile_end_x = ceil ($self->{level_x} + $self->{w}/32) - 1;
-   my $tile_start_y = $self->{level_y};
+   my $tile_start_y = floor $self->{level_y};
    my $tile_end_y = ceil ($self->{level_y} + $self->{h}/32) - 1;
    $tile_start_x = 0 if $tile_start_x < 0; 
    $tile_end_x = $level->{w}-1 if $tile_end_x  >= $level->{w};
@@ -86,6 +86,7 @@ sub draw{
             }
             #warn $clip->x . '\;' . $clip->w . '|;;;;;|' . $clipped_tile_rect->x . '\;' . $clipped_tile_rect->w;
             $tileclass->{surface}->blit($self->{app}, $clip, $clipped_tile_rect);
+            #die $clip->h if  $tx==0 ;
          }
          elsif ($tileclass->{color}){
             $self->{app}->draw_rect( $clipped_tile_rect , $tileclass->{color} );

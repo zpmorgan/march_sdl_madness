@@ -40,6 +40,12 @@ has gravity => (
 has platform => (
    is => 'rw',
 );
+has left_wall => (
+   is => 'rw',
+);
+has right_wall => (
+   is => 'rw',
+);
 
 # walking, freefall, etc
 has 'status' => (
@@ -105,6 +111,7 @@ sub do_walking{
          $self->{x} = $platform->left_x;
          $self->{xv} = 0;
          $self->{bound_l} = 1;
+         $self->establish_wall ('l', $platform->left_x-1);
          return;
       }
    }
@@ -114,6 +121,7 @@ sub do_walking{
          $self->{x} = $platform->right_x +1 - $self->w;
          $self->{xv} = 0;
          $self->{bound_r} = 1;
+         $self->establish_wall ('r', $platform->right_x+1);
          return;
       }
    }
@@ -139,9 +147,10 @@ sub do_walking{
    if ($self->xv){
       $self->bound_l(0);
       $self->bound_r(0);
+      $self->left_wall(undef);
+      $self->right_wall(undef);
+      $self->{x} += $self->xv
    }
-   
-   $self->{x} += $self->xv
 } 
 
 sub do_freefall{
@@ -172,13 +181,17 @@ sub do_freefall{
          }
       }
       else { #horizontal collision
-         $self->{x} += $self->xv * $collision->time*.999;
-         $self->{y} += $self->yv * $collision->time*.999;
+         $self->{x} += $self->xv * $collision->time;
+         $self->{y} += $self->yv * $collision->time;
          if ($self->xv > 0){
             $self->bound_r(1);
+            $self->establish_wall('r', int($self->x+$self->w+.01) );
+            $self->xv(0);
          }
          elsif ($self->xv < 0){
             $self->bound_l(1);
+            $self->establish_wall('l', int($self->x -1 +.01) );
+            $self->xv(0);
          }
          else{
             die 'what manner of collision is this?'
@@ -190,6 +203,8 @@ sub do_freefall{
    if ($self->xv){
       $self->bound_l(0);
       $self->bound_r(0);
+      $self->left_wall(undef);
+      $self->right_wall(undef);
    }
    
    $self->{y} += $self->yv;
@@ -224,7 +239,7 @@ sub perturb_if_necessary{
    my $self = shift;
    unless ($self->in_space){
       #make it more convenient
-      $self->{y} = int $self->{y};
+      $self->{y} = int ($self->{y}) +1 -$self->h;
       $self->{x} = int $self->{x};
       
    }
@@ -237,13 +252,16 @@ sub perturb_if_necessary{
 sub determine_status{
    my $self = shift;
    
+   $self->x(int $self->x);
+   $self->y(int ($self->y)+1-$self->h);
+   
    #perturb until non-solid
    $self->perturb_if_necessary;
    
    # solid ground at feet?
-   if ($self->level->solid ($self->x, $self->y+$self->h + .001)){
+   if ($self->level->solid ($self->x, $self->y+$self->h)){
       $self->set_walking;
-      $self->establish_platform;
+      $self->establish_platform ($self->y+$self->h);
    }
    else {
       $self->set_status ('freefall');
@@ -335,6 +353,38 @@ sub establish_platform{
    );
    #die "$py: $l $l_edge , $r $r_edge";
    $self->platform($platform);
+}
+
+sub establish_wall{
+   my ($self,$side,$x) = @_;
+   my $d = ($side eq 'l') ? 1 : -1;
+   
+   my $fst_y = int($self->y);
+   if ($self->level->solid($x,$fst_y) and !$self->level->solid($x+$d,$fst_y)){
+      $fst_y++;
+      #die 'foo' unless $self->level->solid($x,$fst_y) and !$self->level->solid($x+$d,$fst_y);
+   }
+   my ($top,$bottom) = ($fst_y, $fst_y);
+   while($self->level->solid($x,$top-1) and !$self->level->solid($x+$d,$top-1)){
+      $top--;
+   }
+   while($self->level->solid($x,$bottom-1) and !$self->level->solid($x+$d,$bottom-1)){
+      $bottom++;
+   }
+   my $top_edge = $self->level->solid($x+$d,$top-1) ? 'solid' : 'space';
+   my $bottom_edge = $self->level->solid($x+$d,$bottom+1) ? 'solid' : 'space';
+   
+   my $wall = Wall->new(
+      x => $x,
+      side => $side,
+      top_y => $top,
+      bottom_y => $bottom,
+      top_edge => $top_edge,
+      bottom_edge => $bottom_edge,
+   );
+   #die "$py: $l $l_edge , $r $r_edge";
+   $self->left_wall ($wall) if ($side eq 'l');
+   $self->right_wall($wall) if ($side eq 'r');
 }
 
 sub collision_rect{

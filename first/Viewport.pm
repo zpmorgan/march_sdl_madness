@@ -3,6 +3,7 @@ use warnings;
 use strict;
 
 use SDL::Rect;
+use SDLx::Rect;
 
 use POSIX qw/floor ceil/; 
 

@@ -134,7 +134,7 @@ $app->add_show_handler(
          $cryptopod->set_freefall;
       }
       $cryptopod->do;
-      $app->draw_rect( [ 0, 0, $app->w, $app->h ], 0x0 );
+      $app->draw_rect( [ 0, 0, $app->w, $app->h ], 0x000000FF );
       $viewport->draw();
       $rock_surf->blit ($app, $rect32, $rect32);
    }
